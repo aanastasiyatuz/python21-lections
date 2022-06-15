@@ -51,6 +51,8 @@ not False # True
 not a == 5 # False (потому что a == 5)
 not a == 4 # True (потому что a == 5)
 
+2 in [1,2,3,4,5] # True
+"a" in {"b":3, "c":"a"} # False (нет среди ключей)
 
 
 "============Boolean Type================"
