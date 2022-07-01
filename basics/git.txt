@@ -7,3 +7,7 @@ git push origin master   - закидываем версию в github
 git pull origin master   - стягиваем новые изменения с github (если они есть в github, но их нет локально)
 git clone ssh-ссылка    - копируем репозитроий с github (можно чужой)
 git log   - посмотреть все коммиты
+
+!!!!!!!!
+git reset HEAD~  - отменяет последний коммит (как commit, но наоборот)
+git restore .  - работает так же как add, но наоборот 
