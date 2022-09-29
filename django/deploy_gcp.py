@@ -15,7 +15,7 @@
 # если что вот документация по которой делали мы (https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-16-04#step-five-disable-password-authentication-recommended)
 
 "sudo nano /etc/ssh/sshd_config"
-# найдите PasswordAuthentication no и раскоментируйте эту строку, сохраните и выходите
+# найдите PubkeyAuthentication yes и раскоментируйте эту строку, сохраните и выходите
 
 "sudo systemctl reload sshd"
 
