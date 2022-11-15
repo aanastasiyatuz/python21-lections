@@ -211,3 +211,169 @@ write from db to file
 ```bash
 pg_dump db_name > file.sql
 ```
+
+
+# Агрегатные функции
+
+> **ARRAY_AGG** - обьединяет значения в массив
+
+```sql
+-- пример из blog
+SELECT blogger.name, ARRAY_AGG(post.body) AS posts FROM blogger JOIN post ON blogger.id = post.blogger_id GROUP BY blogger.name;
+--    name    |                           posts                           
+-- -----------+-----------------------------------------------------------
+--  blogger 2 | {"my first post","some post"}
+--  blogger 1 | {"my first blog","today is a good day","it is my b-day!"}
+--  blogger 3 | {"i am not a blogger"}
+```
+
+> **MAX** - выводит максимальное значение
+
+```sql
+-- пример из blog
+SELECT blogger.name, MAX(post.created_at) AS last_post FROM blogger JOIN post ON blogger.id = post.blogger_id GROUP BY blogger.name;
+--    name    | last_post  
+-- -----------+------------
+--  blogger 2 | 2022-06-23
+--  blogger 1 | 2021-09-30
+--  blogger 3 | 2022-08-15
+
+```
+
+> **MIN** - выводит минимальное значение
+
+```sql
+-- пример из blog
+SELECT blogger.name, MIN(post.created_at) AS first_post FROM blogger JOIN post ON blogger.id = post.blogger_id GROUP BY blogger.name;
+--    name    | first_post 
+-- -----------+------------
+--  blogger 2 | 2013-05-10
+--  blogger 1 | 2020-08-01
+--  blogger 3 | 2022-08-15
+```
+
+> **COUNT** - считает кол-во записей
+
+```sql
+-- пример из blog
+SELECT blogger.name, COUNT(post.id) AS posts_count FROM blogger JOIN post ON blogger.id = post.blogger_id GROUP BY blogger.name;
+--    name    | posts_count 
+-- -----------+-------------
+--  blogger 2 |           2
+--  blogger 1 |           3
+--  blogger 3 |           1
+```
+
+> **AVG** - выводит среднее значение
+
+```sql
+-- пример из shop
+SELECT product.title, AVG(rating.value) AS avg_rating 
+FROM product JOIN rating ON rating.product_id = product.id GROUP BY (product.id);
+--    title   |     avg_rating     
+-- -----------+--------------------
+--  product 5 | 3.3333333333333333
+--  product 4 | 5.0000000000000000
+--  product 2 | 5.0000000000000000
+--  product 1 | 4.5000000000000000
+--  product 3 | 4.3333333333333333
+```
+
+> **SUM** - выводит сумму значений
+
+```sql
+-- пример из shop
+SELECT customer.name, SUM(product.price) AS total_price FROM customer JOIN cart ON customer.id = cart.customer_id JOIN product ON product.id = cart.product_id GROUP BY (customer.id);
+--     name    | total_price 
+-- ------------+-------------
+--  customer 2 |         470
+--  customer 3 |         688
+--  customer 1 |        1079
+```
+
+# Создание бд blog
+```sql
+CREATE TABLE blogger (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50)
+);
+
+CREATE TABLE post (
+    id SERIAL PRIMARY KEY,
+    blogger_id INT,
+    body TEXT,
+    created_at DATE,
+
+    CONSTRAINT fk_post_blogger FOREIGN KEY (blogger_id) REFERENCES blogger (id)
+);
+```
+
+```sql
+INSERT INTO blogger (name) VALUES ('blogger 1'), ('blogger 2'), ('blogger 3'); 
+
+INSERT INTO post (blogger_id, body, created_at) VALUES
+(1, 'my first blog', '01.08.2020'),
+(1, 'today is a good day', '02.09.2020'),
+(1, 'it is my b-day!', '30.09.2021');
+
+INSERT INTO post (blogger_id, body, created_at) VALUES
+(2, 'my first post', '10.05.2013'),
+(2, 'some post', '23.06.2022');
+
+INSERT INTO post (blogger_id, body, created_at) VALUES
+(3, 'i am not a blogger', '15.08.2022');
+```
+
+# Создание бд shop
+```sql
+CREATE TABLE customer (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50)
+);
+
+CREATE TABLE product (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(50),
+    price DECIMAL
+);
+
+CREATE TABLE rating (
+    id SERIAL PRIMARY KEY,
+    customer_id INT,
+    product_id INT,
+    value INT CHECK (value IN (1,2,3,4,5)),
+    
+    CONSTRAINT rating_customer FOREIGN KEY (customer_id) REFERENCES customer (id),
+    CONSTRAINT rating_product FOREIGN KEY (product_id) REFERENCES product (id)
+);
+
+CREATE TABLE cart (
+    id SERIAL PRIMARY KEY,
+    customer_id INT,
+    product_id INT,
+
+    CONSTRAINT cart_customer FOREIGN KEY (customer_id) REFERENCES customer (id), 
+    CONSTRAINT cart_product FOREIGN KEY (product_id) REFERENCES product (id)
+);
+```
+
+```sql
+INSERT INTO customer (name) VALUES ('customer 1'), ('customer 2'), ('customer 3'); 
+
+INSERT INTO product (title, price) VALUES
+('product 1', 340),
+('product 2', 503),
+('product 3', 470),
+('product 4', 236),
+('product 5', 452);
+
+INSERT INTO rating (customer_id, product_id, value) VALUES
+(1, 1, 5), (1, 2, 5), (1, 3, 5), (1, 4, 5), (1, 5, 5),
+(2, 3, 4), (2, 4, 5), (2, 5, 2),
+(3, 1, 4), (3, 2, 5), (3, 3, 4), (3, 5, 3);
+
+INSERT INTO cart (customer_id, product_id) VALUES
+(1, 1), (1, 2), (1, 4),
+(2, 3),
+(3, 4), (3, 5);
+```
